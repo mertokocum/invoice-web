@@ -14,17 +14,18 @@ app = FastAPI(title="Invoice OCR Extraction API")
 
 # ✅ Prompt Template
 invoice_extraction_prompt = ChatPromptTemplate.from_messages([
-    ("system",
+    ("system", 
      "Sen bir fatura/fiş analiz aracı olarak çalışıyorsun. "
-     "Sadece geçerli JSON nesnesi dön. Başka hiçbir şey göndermeyeceksin—ne metin, ne açıklama, ne markdown, sadece saf JSON."),
-    ("human",
-     "OCR Metni:\n{invoice_text}\n\n"
-     "Çıkarılması gereken alanlar: "
-     "magazaBilgisi (unvan, adres, fisNumarasi, tarih), "
-     "musteriBilgisi (isim, soyisim, telfon, email, vergino), "
-     "urunKalemleri (liste; her kalem: urunAdi, urunKodu, miktar, birimFiyat, satirToplam), "
-     "odemeBilgileri (araToplam, vergiOrani, vergiTutari, yuvarlama, genelToplam, odenenTutar, paraUstu).")
+     "Sadece geçerli JSON nesnesi dön. Başka hiçbir şey gönderme. "
+     "Alanlar:\n"
+     "- magazaBilgisi: unvan, adres, fisNumarasi\n"
+     "- tarih: (fatura tarihi - sadece gün/ay/yıl formatında)\n"
+     "- musteriBilgisi: isim, soyisim\n"
+     "- urunler: her biri isim, adet, birimFiyat, toplamFiyat\n"
+     "- toplamTutar: (sadece sayı)"),
+    ("human", "OCR Metni:\n{invoice_text}")
 ])
+
 
 # ✅ OCR'dan metin çıkaran fonksiyon
 async def extract_text_from_file(file: UploadFile) -> str:
@@ -36,21 +37,27 @@ async def extract_text_from_file(file: UploadFile) -> str:
 
 # ✅ LLM ile JSON veriyi çıkaran fonksiyon (yeni API ile)
 def parse_invoice_with_llm(text: str) -> dict:
-    llm = OllamaLLM(model="llama3:8b", temperature=0)  # 🆕 langchain-ollama kullanımı
-    chain = invoice_extraction_prompt | llm  # 🆕 Runnable zinciri
+    llm = OllamaLLM(model="llama3:8b", temperature=0)
+    chain = invoice_extraction_prompt | llm
 
     raw_output = chain.invoke({"invoice_text": text})
 
-    # JSON'ı ayıkla
-    obj_match = re.search(r'(\{[\s\S]*\})', raw_output)
-    if not obj_match:
-        raise HTTPException(status_code=502, detail=f"JSON ayrıştırılamadı. Çıktı:\n{raw_output}")
+    # Tüm JSON bloklarını yakala
+    json_bloklari = re.findall(r'(\{[\s\S]*?\})', raw_output)
 
-    json_str = obj_match.group(1)
-    try:
-        return json.loads(json_str)
-    except json.JSONDecodeError as e:
-        raise HTTPException(status_code=502, detail=f"JSON parse hatası: {e.msg}\n{json_str}")
+    if not json_bloklari:
+        raise HTTPException(status_code=502, detail=f"Hiç JSON bloğu bulunamadı.\nÇıktı:\n{raw_output}")
+
+    # Her JSON bloğunu sırayla parse et ve birleştir
+    sonuc = {}
+    for blok in json_bloklari:
+        try:
+            parcali = json.loads(blok)
+            sonuc.update(parcali)
+        except json.JSONDecodeError as e:
+            raise HTTPException(status_code=502, detail=f"JSON parse hatası: {e.msg}\nHatalı parça:\n{blok}")
+
+    return sonuc
 
 # ✅ FastAPI endpoint
 @app.post("/extract-invoice", response_class=JSONResponse)
