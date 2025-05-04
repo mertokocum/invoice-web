@@ -10,9 +10,7 @@ function Upload() {
   const [error, setError] = useState(null)
   const navigate = useNavigate()
 
-  const handleFileChange = (e) => {
-    setFile(e.target.files[0])
-  }
+  const handleFileChange = (e) => setFile(e.target.files[0])
 
   const handleSubmit = async (e) => {
     e.preventDefault()
@@ -31,54 +29,40 @@ function Upload() {
       await axios.post('http://localhost:3000/api/invoices', formData, {
         headers: {
           Authorization: `Bearer ${token}`,
-          'Content-Type': 'multipart/form-data'
         }
       })
-
       navigate('/invoices')
     } catch (err) {
       setError('Yükleme sırasında bir hata oluştu.')
-      console.error(err)
     } finally {
       setLoading(false)
     }
   }
 
   return (
-    <div className="flex flex-col items-center justify-center h-screen bg-gray-100">
-      <h1 className="text-2xl font-semibold mb-4">Fatura veya Fiş Yükle</h1>
-      <form onSubmit={handleSubmit} className="bg-white p-6 rounded shadow space-y-4 w-96">
-        <input type="file" onChange={handleFileChange} className="w-full" />
-
-        <select
-          value={model}
-          onChange={(e) => setModel(e.target.value)}
-          className="w-full p-2 border rounded"
-        >
-          <option value="gemma3:12b">Gemma 12B</option>
-          <option value="llama3:8b">LLaMA 3 8B</option>
-          <option value="llama2:7b">LLaMA 2 7B</option>
-
-        </select>
-
-        <select
-          value={docType}
-          onChange={(e) => setDocType(e.target.value)}
-          className="w-full p-2 border rounded"
-        >
-          <option value="fatura">Fatura</option>
-          <option value="fis">Fiş</option>
-        </select>
-
-        <button
-          type="submit"
-          disabled={loading}
-          className="w-full bg-green-500 text-white p-2 rounded hover:bg-green-600"
-        >
+    <div className="container mt-5">
+      <h2 className="text-center mb-4">Fatura veya Fiş Yükle</h2>
+      <form onSubmit={handleSubmit} className="card p-4 shadow">
+        <div className="mb-3">
+          <input type="file" className="form-control" onChange={handleFileChange} />
+        </div>
+        <div className="mb-3">
+          <select className="form-select" value={model} onChange={(e) => setModel(e.target.value)}>
+            <option value="gemma3:12b">Gemma 12B</option>
+            <option value="llama3:8b">LLaMA 3 8B</option>
+            <option value="llama2:7b">LLaMA 2 7B</option>
+          </select>
+        </div>
+        <div className="mb-3">
+          <select className="form-select" value={docType} onChange={(e) => setDocType(e.target.value)}>
+            <option value="fatura">Fatura</option>
+            <option value="fis">Fiş</option>
+          </select>
+        </div>
+        <button type="submit" className="btn btn-success w-100" disabled={loading}>
           {loading ? 'Yükleniyor...' : 'Yükle ve İşle'}
         </button>
-
-        {error && <p className="text-red-500 text-sm">{error}</p>}
+        {error && <div className="alert alert-danger mt-3">{error}</div>}
       </form>
     </div>
   )

@@ -21,30 +21,32 @@ function Login() {
   }
 
   return (
-    <div className="flex flex-col items-center justify-center h-screen bg-gray-100">
-      <h1 className="text-3xl font-bold mb-4">Login</h1>
-      <form onSubmit={handleLogin} className="bg-white p-6 rounded shadow-md space-y-4 w-80">
-        <input
-          className="w-full p-2 border border-gray-300 rounded"
-          placeholder="Kullanıcı Adı"
-          value={username}
-          onChange={(e) => setUsername(e.target.value)}
-        />
-        <input
-          type="password"
-          className="w-full p-2 border border-gray-300 rounded"
-          placeholder="Şifre"
-          value={password}
-          onChange={(e) => setPassword(e.target.value)}
-        />
-        <button
-          type="submit"
-          className="w-full bg-blue-500 text-white p-2 rounded hover:bg-blue-600"
-        >
-          Giriş Yap
-        </button>
-        {error && <p className="text-red-500 text-sm">{error}</p>}
-      </form>
+    <div className="container d-flex justify-content-center align-items-center vh-100">
+      <div className="card p-4 shadow" style={{ width: '350px' }}>
+        <h3 className="mb-3 text-center">Giriş Yap</h3>
+        <form onSubmit={handleLogin}>
+          <div className="mb-3">
+            <input
+              type="text"
+              className="form-control"
+              placeholder="Kullanıcı Adı"
+              value={username}
+              onChange={(e) => setUsername(e.target.value)}
+            />
+          </div>
+          <div className="mb-3">
+            <input
+              type="password"
+              className="form-control"
+              placeholder="Şifre"
+              value={password}
+              onChange={(e) => setPassword(e.target.value)}
+            />
+          </div>
+          <button type="submit" className="btn btn-primary w-100">Giriş Yap</button>
+          {error && <div className="alert alert-danger mt-3">{error}</div>}
+        </form>
+      </div>
     </div>
   )
 }

@@ -24,22 +24,24 @@ function InvoiceDetail() {
   }, [id])
 
   return (
-    <div className="p-6 max-w-4xl mx-auto">
-      <h1 className="text-2xl font-semibold mb-4">Fatura Detayı</h1>
-      {error && <p className="text-red-500">{error}</p>}
+    <div className="container mt-5">
+      <h2 className="mb-4">Fatura Detayı</h2>
+      {error && <div className="alert alert-danger">{error}</div>}
       {!invoice ? (
         <p>Yükleniyor...</p>
       ) : (
         <>
-          <div className="bg-white p-4 rounded shadow border mb-4">
-            <p><strong>Dosya:</strong> {invoice.filename}</p>
-            <p><strong>Tarih:</strong> {new Date(invoice.createdAt).toLocaleString()}</p>
+          <div className="card mb-4">
+            <div className="card-body">
+              <p><strong>Dosya:</strong> {invoice.filename}</p>
+              <p><strong>Tarih:</strong> {new Date(invoice.createdAt).toLocaleString()}</p>
+            </div>
           </div>
-          <div className="bg-gray-100 p-4 rounded shadow">
-            <h2 className="text-lg font-medium mb-2">JSON Verisi</h2>
-            <pre className="text-sm overflow-x-auto whitespace-pre-wrap">
-              {JSON.stringify(invoice.parsedData, null, 2)}
-            </pre>
+          <div className="card">
+            <div className="card-header">JSON Verisi</div>
+            <div className="card-body">
+              <pre className="text-sm">{JSON.stringify(invoice.parsedData, null, 2)}</pre>
+            </div>
           </div>
         </>
       )}
