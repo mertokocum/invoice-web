@@ -3,27 +3,35 @@ import shutil
 import json
 import re
 import tempfile
-from fastapi import FastAPI, File, UploadFile, HTTPException
+from fastapi import FastAPI, File, UploadFile, HTTPException, Form
 from fastapi.responses import JSONResponse
 
 from langchain.prompts import ChatPromptTemplate
-from langchain_ollama import OllamaLLM  # ✅ Yeni API
-from ocr import ocr_yap  # OCR işlemini yapan senin kendi fonksiyonun
+from langchain_ollama import OllamaLLM
+from ocr import ocr_yap
 
 app = FastAPI(title="Invoice OCR Extraction API")
 
-# ✅ Prompt Template
-invoice_extraction_prompt = ChatPromptTemplate.from_messages([
-    ("system",
-     "Sen bir fatura/fiş analiz aracı olarak çalışıyorsun. "
-     "Sadece geçerli JSON nesnesi dön. Başka hiçbir şey göndermeyeceksin—ne metin, ne açıklama, ne markdown, sadece saf JSON."),
-    ("human",
-     "OCR Metni:\n{invoice_text}\n\n"
-     "Çıkarılması gereken alanlar: "
-     "magazaBilgisi (unvan, adres, fisNumarasi, tarih), "
-     "musteriBilgisi (isim, soyisim, telfon, email, vergino), "
-     "urunKalemleri (liste; her kalem: urunAdi, urunKodu, miktar, birimFiyat, satirToplam), "
-     "odemeBilgileri (araToplam, vergiOrani, vergiTutari, yuvarlama, genelToplam, odenenTutar, paraUstu).")
+# ✅ Promptlar: Fiş ve Fatura için ayrı ayrı
+invoice_prompt = ChatPromptTemplate.from_messages([
+    ("system", "Sen bir *fatura* analiz aracı olarak çalışıyorsun. "
+               "Sadece geçerli JSON nesnesi dön. Başka hiçbir şey göndermeyeceksin."),
+    ("human", "OCR Metni:\n{invoice_text}\n\n"
+              "Çıkarılması gereken alanlar: "
+              "magazaBilgisi (unvan, adres, fisNumarasi, tarih), "
+              "musteriBilgisi (isim, soyisim, telfon, email, vergino), "
+              "urunKalemleri (liste; her kalem: urunAdi, urunKodu, miktar, birimFiyat, satirToplam), "
+              "odemeBilgileri (araToplam, vergiOrani, vergiTutari, yuvarlama, genelToplam, odenenTutar, paraUstu).")
+])
+
+receipt_prompt = ChatPromptTemplate.from_messages([
+    ("system", "Sen bir *fiş* analiz aracı olarak çalışıyorsun. "
+               "Sadece geçerli JSON nesnesi dön. Başka hiçbir şey göndermeyeceksin."),
+    ("human", "OCR Metni:\n{invoice_text}\n\n"
+              "Çıkarılması gereken alanlar: "
+              "magazaBilgisi (unvan, adres, tarih, fisNumarasi), "
+              "urunKalemleri (liste; her kalem: urunAdi, miktar, birimFiyat, toplam), "
+              "odemeBilgileri (genelToplam, odenenTutar, paraUstu).")
 ])
 
 # ✅ OCR'dan metin çıkaran fonksiyon
@@ -34,17 +42,13 @@ async def extract_text_from_file(file: UploadFile) -> str:
         tmp_path = tmp.name
     return ocr_yap(tmp_path) or ""
 
-# ✅ LLM ile JSON veriyi çıkaran fonksiyon (yeni API ile)
-def parse_invoice_with_llm(text: str) -> dict:
-    llm = OllamaLLM(model="gemma3:12b", temperature=0)
-
-
-
-    chain = invoice_extraction_prompt | llm  # 🆕 Runnable zinciri
-
+# ✅ LLM ile metni işleyen fonksiyon
+def parse_invoice_with_llm(text: str, model: str, doc_type: str) -> dict:
+    prompt = invoice_prompt if doc_type == "fatura" else receipt_prompt
+    llm = OllamaLLM(model=model, temperature=0)
+    chain = prompt | llm
     raw_output = chain.invoke({"invoice_text": text})
 
-    # JSON'ı ayıkla
     obj_match = re.search(r'(\{[\s\S]*\})', raw_output)
     if not obj_match:
         raise HTTPException(status_code=502, detail=f"JSON ayrıştırılamadı. Çıktı:\n{raw_output}")
@@ -55,11 +59,15 @@ def parse_invoice_with_llm(text: str) -> dict:
     except json.JSONDecodeError as e:
         raise HTTPException(status_code=502, detail=f"JSON parse hatası: {e.msg}\n{json_str}")
 
-# ✅ FastAPI endpoint
+# ✅ FastAPI endpoint (model + docType dahil)
 @app.post("/extract-invoice", response_class=JSONResponse)
-async def extract_invoice(file: UploadFile = File(...)):
+async def extract_invoice(
+    file: UploadFile = File(...),
+    model: str = Form("gemma3:12b"),
+    docType: str = Form("fatura")
+):
     text = await extract_text_from_file(file)
     if not text.strip():
         raise HTTPException(status_code=400, detail="OCR metni alınamadı veya boş.")
-    parsed = parse_invoice_with_llm(text)
+    parsed = parse_invoice_with_llm(text, model=model, doc_type=docType)
     return JSONResponse(content=parsed)

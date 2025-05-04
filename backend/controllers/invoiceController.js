@@ -12,6 +12,10 @@ export const uploadInvoice = async (req, res) => {
     const form = new FormData()
     form.append('file', fs.createReadStream(req.file.path), req.file.originalname)
 
+    // 👇 Yeni eklenen alanlar: model ve docType
+    form.append('model', req.body.model || 'gemma3:12b')
+    form.append('docType', req.body.docType || 'fatura')
+
     const response = await axios.post('http://localhost:8001/extract-invoice', form, {
       headers: form.getHeaders()
     })

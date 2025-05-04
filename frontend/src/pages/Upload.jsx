@@ -4,6 +4,8 @@ import { useNavigate } from 'react-router-dom'
 
 function Upload() {
   const [file, setFile] = useState(null)
+  const [model, setModel] = useState("gemma3:12b")
+  const [docType, setDocType] = useState("fatura")
   const [loading, setLoading] = useState(false)
   const [error, setError] = useState(null)
   const navigate = useNavigate()
@@ -21,6 +23,8 @@ function Upload() {
 
     const formData = new FormData()
     formData.append('file', file)
+    formData.append('model', model)
+    formData.append('docType', docType)
 
     try {
       const token = localStorage.getItem('token')
@@ -42,9 +46,30 @@ function Upload() {
 
   return (
     <div className="flex flex-col items-center justify-center h-screen bg-gray-100">
-      <h1 className="text-2xl font-semibold mb-4">Fatura Yükle</h1>
+      <h1 className="text-2xl font-semibold mb-4">Fatura veya Fiş Yükle</h1>
       <form onSubmit={handleSubmit} className="bg-white p-6 rounded shadow space-y-4 w-96">
         <input type="file" onChange={handleFileChange} className="w-full" />
+
+        <select
+          value={model}
+          onChange={(e) => setModel(e.target.value)}
+          className="w-full p-2 border rounded"
+        >
+          <option value="gemma3:12b">Gemma 12B</option>
+          <option value="llama3:8b">LLaMA 3 8B</option>
+          <option value="llama2:7b">LLaMA 2 7B</option>
+
+        </select>
+
+        <select
+          value={docType}
+          onChange={(e) => setDocType(e.target.value)}
+          className="w-full p-2 border rounded"
+        >
+          <option value="fatura">Fatura</option>
+          <option value="fis">Fiş</option>
+        </select>
+
         <button
           type="submit"
           disabled={loading}
@@ -52,6 +77,7 @@ function Upload() {
         >
           {loading ? 'Yükleniyor...' : 'Yükle ve İşle'}
         </button>
+
         {error && <p className="text-red-500 text-sm">{error}</p>}
       </form>
     </div>
