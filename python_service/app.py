@@ -36,7 +36,10 @@ async def extract_text_from_file(file: UploadFile) -> str:
 
 # ✅ LLM ile JSON veriyi çıkaran fonksiyon (yeni API ile)
 def parse_invoice_with_llm(text: str) -> dict:
-    llm = OllamaLLM(model="llama3:8b", temperature=0)  # 🆕 langchain-ollama kullanımı
+    llm = OllamaLLM(model="gemma3:12b", temperature=0)
+
+
+
     chain = invoice_extraction_prompt | llm  # 🆕 Runnable zinciri
 
     raw_output = chain.invoke({"invoice_text": text})
