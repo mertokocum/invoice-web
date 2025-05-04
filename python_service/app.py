@@ -81,7 +81,7 @@ invoice_prompt = ChatPromptTemplate.from_messages([
 receipt_prompt = ChatPromptTemplate.from_messages([
     ("system", "Sen bir *fiş* analiz aracı olarak çalışıyorsun. "
                "Sadece geçerli JSON nesnesi dön. Başka hiçbir şey göndermeyeceksin."),
-    ("human", "OCR Metni:\n{invoice_text}\n\n"
+    ("human", "OCR Metni:\n{receipt_text}\n\n"
               "Çıkarılması gereken alanlar: "
               "magazaBilgisi (unvan, adres, tarih, fisNumarasi), "
               "urunKalemleri (liste; her kalem: urunAdi, miktar, birimFiyat, toplam), "
