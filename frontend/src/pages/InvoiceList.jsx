@@ -28,23 +28,26 @@ function InvoiceList() {
   }
 
   return (
-    <div className="p-6 max-w-4xl mx-auto">
-      <h1 className="text-2xl font-semibold mb-4">Yüklenen Faturalar</h1>
-      {error && <p className="text-red-500 mb-2">{error}</p>}
-      <ul className="space-y-2">
+    <div className="container mt-5">
+      <h2 className="mb-4">Yüklenen Faturalar</h2>
+      {error && <div className="alert alert-danger">{error}</div>}
+      <div className="list-group">
         {invoices.map((inv) => (
-          <li
+          <button
             key={inv.id}
             onClick={() => handleClick(inv.id)}
-            className="p-4 bg-white shadow rounded cursor-pointer hover:bg-gray-50 border"
+            className="list-group-item list-group-item-action d-flex justify-content-between align-items-center"
           >
-            <div className="font-medium">📄 {inv.filename}</div>
-            <div className="text-sm text-gray-500">
-              Tarih: {new Date(inv.createdAt).toLocaleString()}
+            <div>
+              <strong>📄 {inv.filename}</strong>
+              <div className="text-muted" style={{ fontSize: '0.9rem' }}>
+                {new Date(inv.createdAt).toLocaleString()}
+              </div>
             </div>
-          </li>
+            <span className="badge bg-primary">Detay</span>
+          </button>
         ))}
-      </ul>
+      </div>
     </div>
   )
 }

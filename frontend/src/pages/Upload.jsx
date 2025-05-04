@@ -34,26 +34,29 @@ function Upload() {
       navigate('/invoices')
     } catch (err) {
       setError('Yükleme sırasında bir hata oluştu.')
-      console.error(err)
     } finally {
       setLoading(false)
     }
   }
 
   return (
-    <div className="flex flex-col items-center justify-center h-screen bg-gray-100">
-      <h1 className="text-2xl font-semibold mb-4">Fatura Yükle</h1>
-      <form onSubmit={handleSubmit} className="bg-white p-6 rounded shadow space-y-4 w-96">
-        <input type="file" onChange={handleFileChange} className="w-full" />
-        <button
-          type="submit"
-          disabled={loading}
-          className="w-full bg-green-500 text-white p-2 rounded hover:bg-green-600"
-        >
-          {loading ? 'Yükleniyor...' : 'Yükle ve İşle'}
-        </button>
-        {error && <p className="text-red-500 text-sm">{error}</p>}
-      </form>
+    <div className="container d-flex align-items-center justify-content-center vh-100">
+      <div className="card p-4 shadow" style={{ width: '100%', maxWidth: '500px' }}>
+        <h3 className="text-center mb-4">Fatura Yükle</h3>
+        <form onSubmit={handleSubmit}>
+          <div className="mb-3">
+            <input type="file" onChange={handleFileChange} className="form-control" />
+          </div>
+          <button
+            type="submit"
+            disabled={loading}
+            className="btn btn-success w-100"
+          >
+            {loading ? 'Yükleniyor...' : 'Yükle ve İşle'}
+          </button>
+          {error && <div className="alert alert-danger mt-3 py-1">{error}</div>}
+        </form>
+      </div>
     </div>
   )
 }
