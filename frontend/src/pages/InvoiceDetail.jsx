@@ -71,26 +71,57 @@ function InvoiceDetail() {
           {/* 🏪 Mağaza Bilgisi */}
           <div className="card mb-3">
             <div className="card-header">Mağaza Bilgisi</div>
-            <div className="card-body">
-              <p><strong>Unvan:</strong> {data.magazaBilgisi?.unvan}</p>
-              <p><strong>Adres:</strong> {data.magazaBilgisi?.adres}</p>
-              <p><strong>Telefon:</strong> {data.magazaBilgisi?.magazaTelefon}</p>
-              <p><strong>Email:</strong> {data.magazaBilgisi?.email}</p>
-              <p><strong>Fiş/Fatura No:</strong> {data.magazaBilgisi?.fisNumarasi}</p>
-              <p><strong>Tarih:</strong> {data.magazaBilgisi?.tarih}</p>
+            <div className="card-body p-0">
+              <table className="table table-bordered mb-0">
+                <thead className="table-light">
+                  <tr>
+                    <th>Unvan</th>
+                    <th>Adres</th>
+                    <th>Telefon</th>
+                    <th>Email</th>
+                    <th>Fiş/Fatura No</th>
+                    <th>Tarih</th>
+                  </tr>
+                </thead>
+                <tbody>
+                  <tr>
+                    <td>{data.magazaBilgisi?.unvan || '-'}</td>
+                    <td>{data.magazaBilgisi?.adres || '-'}</td>
+                    <td>{data.magazaBilgisi?.magazaTelefon || '-'}</td>
+                    <td>{data.magazaBilgisi?.email || '-'}</td>
+                    <td>{data.magazaBilgisi?.fisNumarasi || '-'}</td>
+                    <td>{data.magazaBilgisi?.tarih || '-'}</td>
+                  </tr>
+                </tbody>
+              </table>
             </div>
           </div>
 
           {/* 👤 Müşteri Bilgisi */}
           <div className="card mb-3">
             <div className="card-header">Müşteri Bilgisi</div>
-            <div className="card-body">
-              <p><strong>İsim Soyisim:</strong> {data.musteriBilgisi?.isimSoyisim}</p>
-              <p><strong>Email:</strong> {data.musteriBilgisi?.email}</p>
-              <p><strong>Telefon:</strong> {data.musteriBilgisi?.telefon}</p>
-              <p><strong>Vergi No:</strong> {data.musteriBilgisi?.vergino || 'Yok'}</p>
+            <div className="card-body p-0">
+              <table className="table table-bordered mb-0">
+                <thead className="table-light">
+                  <tr>
+                    <th>İsim Soyisim</th>
+                    <th>Email</th>
+                    <th>Telefon</th>
+                    <th>Vergi No</th>
+                  </tr>
+                </thead>
+                <tbody>
+                  <tr>
+                    <td>{data.musteriBilgisi?.isimSoyisim || '-'}</td>
+                    <td>{data.musteriBilgisi?.email || '-'}</td>
+                    <td>{data.musteriBilgisi?.telefon || '-'}</td>
+                    <td>{data.musteriBilgisi?.vergino || '-'}</td>
+                  </tr>
+                </tbody>
+              </table>
             </div>
           </div>
+
 
           {/* 📦 Ürün Kalemleri */}
           <div className="card mb-3">
@@ -118,18 +149,35 @@ function InvoiceDetail() {
               </table>
             </div>
           </div>
-
           {/* 💳 Ödeme Bilgileri */}
           <div className="card mb-3">
             <div className="card-header">Ödeme Bilgileri</div>
-            <div className="card-body">
-              <p><strong>Ara Toplam:</strong> {data.odemeBilgileri?.araToplam}</p>
-              <p><strong>Vergi Oranı:</strong> %{(data.odemeBilgileri?.vergiOrani || 0) * 100}</p>
-              <p><strong>Vergi Tutarı:</strong> {data.odemeBilgileri?.vergiTutari}</p>
-              <p><strong>Genel Toplam:</strong> {data.odemeBilgileri?.genelToplam}</p>
-              <p><strong>Ödenen Tutar:</strong> {data.odemeBilgileri?.odenenTutar}</p>
+            <div className="card-body p-0">
+              <table className="table table-bordered mb-0">
+                <thead className="table-light">
+                  <tr>
+                    <th>Ara Toplam</th>
+                    <th>Vergi Oranı</th>
+                    <th>Vergi Tutarı</th>
+                    <th>Ödenen Tutar</th>
+                    <th>Genel Toplam</th>
+
+                  </tr>
+                </thead>
+                <tbody>
+                  <tr>
+                    <td>{data.odemeBilgileri?.araToplam ?? '-'}</td>
+                    <td>%{(data.odemeBilgileri?.vergiOrani ?? 0) * 100}</td>
+                    <td>{data.odemeBilgileri?.vergiTutari ?? '-'}</td>
+                    <td>{data.odemeBilgileri?.odenenTutar ?? '-'}</td>
+                    <td>{data.odemeBilgileri?.genelToplam ?? '-'}</td>
+
+                  </tr>
+                </tbody>
+              </table>
             </div>
           </div>
+
 
           {/* 🧾 JSON Ham Verisi */}
           <div className="card mb-5">
