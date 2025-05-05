@@ -58,9 +58,16 @@ function Upload() {
             <option value="fis">Fiş</option>
           </select>
         </div>
+
         <button type="submit" className="btn btn-success w-100" disabled={loading}>
-          {loading ? 'Yükleniyor...' : 'Yükle ve İşle'}
+          {loading ? (
+            <>
+              <span className="spinner-border spinner-border-sm me-2" role="status" aria-hidden="true"></span>
+              Yükleniyor...
+            </>
+          ) : 'Yükle ve İşle'}
         </button>
+
         {error && <div className="alert alert-danger mt-3">{error}</div>}
       </form>
     </div>
