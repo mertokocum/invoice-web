@@ -25,10 +25,12 @@ export const uploadInvoice = async (req, res) => {
     const invoice = await prisma.invoice.create({
       data: {
         filename: req.file.originalname,
+        imagePath: req.file.path, // 🆕 ekledik
         parsedData: parsed,
         userId: req.user.id,
       },
     })
+    
 
     res.json(invoice)
   } catch (err) {
