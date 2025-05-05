@@ -5,8 +5,8 @@ import { PrismaClient } from '@prisma/client'
 const prisma = new PrismaClient()
 
 export const register = async (req, res) => {
-  const { username, password, role } = req.body
-  if (!username || !password || !role) {
+  const { username, password } = req.body  // ⛔️ 'role' yok
+  if (!username || !password) {
     return res.status(400).json({ error: 'Tüm alanlar zorunlu' })
   }
 
@@ -15,11 +15,17 @@ export const register = async (req, res) => {
 
   const hashedPassword = await bcrypt.hash(password, 10)
   const user = await prisma.user.create({
-    data: { username, password: hashedPassword, role }
+    data: {
+      username,
+      password: hashedPassword,
+      role: 'user'  // ✅ sabit
+    }
   })
 
   res.status(201).json({ message: 'Kullanıcı oluşturuldu', userId: user.id })
 }
+
+
 
 export const login = async (req, res) => {
   const { username, password } = req.body

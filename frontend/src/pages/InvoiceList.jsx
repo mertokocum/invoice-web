@@ -27,10 +27,21 @@ function InvoiceList() {
     navigate(`/invoice/${id}`)
   }
 
+  const handleUploadNavigate = () => {
+    navigate('/upload')
+  }
+
   return (
     <div className="container mt-5">
-      <h2 className="mb-4">Yüklenen Faturalar</h2>
+      <div className="d-flex justify-content-between align-items-center mb-4">
+        <h2 className="mb-0">Yüklenen Faturalar</h2>
+        <button className="btn btn-success" onClick={handleUploadNavigate}>
+          + Yeni Fatura Yükle
+        </button>
+      </div>
+
       {error && <div className="alert alert-danger">{error}</div>}
+
       <div className="list-group">
         {invoices.map((inv) => (
           <button
