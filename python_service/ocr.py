@@ -29,7 +29,7 @@ def preprocess_image(image_path):
     cv2.imwrite(temp_path, resized)
     return temp_path
 
-def ocr_yap(image_path, dil="tur"):
+def ocr_yap(image_path, dil="tur+eng"):
     try:
         preprocessed_path = preprocess_image(image_path)
         img = Image.open(preprocessed_path)
@@ -38,12 +38,20 @@ def ocr_yap(image_path, dil="tur"):
         config = r"--oem 3 --psm 6"
         text = pytesseract.image_to_string(img, lang=dil, config=config)
 
+        # OCR çıktısını konsola yazdır
+        print("=" * 40)
+        print("📄 OCR ÇIKTISI")
+        print("=" * 40)
+        print(text)
+        print("=" * 40)
+
         # Geçici dosyayı sil
         if os.path.exists(preprocessed_path):
             os.remove(preprocessed_path)
 
         return text
     except Exception as e:
+        print(f"Hata oluştu: {e}")
         return f"Hata oluştu: {e}"
 
 # Test için:
