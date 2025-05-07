@@ -5,18 +5,14 @@ import re
 import tempfile
 from fastapi import FastAPI, File, UploadFile, HTTPException, Form
 from fastapi.responses import JSONResponse
-
+from pdf2image import convert_from_bytes  # ✅ PDF desteği
 from langchain.prompts import ChatPromptTemplate
 from langchain_ollama import OllamaLLM
 from ocr import ocr_yap
 
 app = FastAPI(title="Invoice OCR Extraction API")
 
-# ✅ Promptlar: Fiş ve Fatura için ayrı ayrı
-from langchain.prompts import ChatPromptTemplate
-
-from langchain.prompts import ChatPromptTemplate
-
+# ✅ Promptlar
 invoice_prompt = ChatPromptTemplate.from_messages([
     ("system", 
      "You are an *invoice analysis tool*. Your task is to extract structured information from the provided OCR text "
@@ -146,33 +142,51 @@ receipt_prompt = ChatPromptTemplate.from_messages([
      "OCR Text:\n{invoice_text}")
 ])
 
-# ✅ OCR'dan metin çıkaran fonksiyon
+# ✅ OCR'dan metin çıkaran fonksiyon (PDF destekli)
 async def extract_text_from_file(file: UploadFile) -> str:
-    suffix = ".jpg" if file.filename.lower().endswith(('.jpg', '.jpeg')) else ".png"
+    filename = file.filename.lower()
+
+    if filename.endswith('.pdf'):
+        images = convert_from_bytes(await file.read(), dpi=300)
+        if not images:
+            raise HTTPException(status_code=400, detail="PDF içeriği işlenemedi.")
+        
+        temp_img_path = tempfile.mktemp(suffix=".png")
+        images[0].save(temp_img_path)
+        return ocr_yap(temp_img_path) or ""
+
+    suffix = ".jpg" if filename.endswith(('.jpg', '.jpeg')) else ".png"
     with tempfile.NamedTemporaryFile(delete=False, suffix=suffix) as tmp:
         shutil.copyfileobj(file.file, tmp)
         tmp_path = tmp.name
     return ocr_yap(tmp_path) or ""
 
-# ✅ LLM ile metni işleyen fonksiyon
+# ✅ LLM ile analiz
 def parse_invoice_with_llm(text: str, model: str, doc_type: str) -> dict:
     prompt = invoice_prompt if doc_type == "fatura" else receipt_prompt
-    input_key = "invoice_text" if doc_type == "fatura" else "receipt_text"
-    
+    input_key = "invoice_text"
+
     llm = OllamaLLM(model=model, temperature=0)
     chain = prompt | llm
     raw_output = chain.invoke({input_key: text})
 
-    obj_match = re.search(r'(\{[\s\S]*\})', raw_output)
+    # 🛡️ Safe JSON bulma
+    obj_match = re.search(r'\{[\s\S]*\}', raw_output.strip())
     if not obj_match:
-        raise HTTPException(status_code=502, detail=f"JSON ayrıştırılamadı. Çıktı:\n{raw_output}")
+        raise HTTPException(status_code=502, detail=f"JSON ayrıştırılamadı. LLM Çıktısı:\n{raw_output}")
 
-    json_str = obj_match.group(1)
+    json_str = obj_match.group(0)
+
     try:
+        # Ekstra: Son karakter { ile bitiyorsa muhtemelen model kesmiş demektir
+        if json_str.strip()[-1] != "}":
+            json_str += "}"  # Zorunlu değil ama bazen kurtarır
+
         return json.loads(json_str)
     except json.JSONDecodeError as e:
         raise HTTPException(status_code=502, detail=f"JSON parse hatası: {e.msg}\n{json_str}")
 
+# ✅ API endpoint
 @app.post("/extract-invoice", response_class=JSONResponse)
 async def extract_invoice(
     file: UploadFile = File(...),
@@ -180,14 +194,13 @@ async def extract_invoice(
     docType: str = Form("fatura")
 ):
     text = await extract_text_from_file(file)
-    
-    # 🖨️ Terminale OCR çıktısını yazdır
-    print("\n🧾 OCR Çıktısı Başladı:\n" + "="*40)
+
+    print("\n🧾 OCR Çıktısı Başladı:\n" + "=" * 40)
     print(text)
-    print("="*40 + "\n🧾 OCR Çıktısı Bitti\n")
-    
+    print("=" * 40 + "\n🧾 OCR Çıktısı Bitti\n")
+
     if not text.strip():
         raise HTTPException(status_code=400, detail="OCR metni alınamadı veya boş.")
-    
+
     parsed = parse_invoice_with_llm(text, model=model, doc_type=docType)
     return JSONResponse(content=parsed)
