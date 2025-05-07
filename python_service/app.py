@@ -120,7 +120,6 @@ def parse_invoice_with_llm(text: str, model: str, doc_type: str) -> dict:
     except json.JSONDecodeError as e:
         raise HTTPException(status_code=502, detail=f"JSON parse hatası: {e.msg}\n{json_str}")
 
-# ✅ FastAPI endpoint (model + docType dahil)
 @app.post("/extract-invoice", response_class=JSONResponse)
 async def extract_invoice(
     file: UploadFile = File(...),
@@ -128,7 +127,14 @@ async def extract_invoice(
     docType: str = Form("fatura")
 ):
     text = await extract_text_from_file(file)
+    
+    # 🖨️ Terminale OCR çıktısını yazdır
+    print("\n🧾 OCR Çıktısı Başladı:\n" + "="*40)
+    print(text)
+    print("="*40 + "\n🧾 OCR Çıktısı Bitti\n")
+    
     if not text.strip():
         raise HTTPException(status_code=400, detail="OCR metni alınamadı veya boş.")
+    
     parsed = parse_invoice_with_llm(text, model=model, doc_type=docType)
     return JSONResponse(content=parsed)
