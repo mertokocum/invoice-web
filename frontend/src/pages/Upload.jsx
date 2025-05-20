@@ -50,6 +50,9 @@ function Upload() {
           <select className="form-select" value={model} onChange={(e) => setModel(e.target.value)}>
             <option value="gemma3:12b">Daha doğru: Gemma 12B</option>
             <option value="llama3:8b">Daha hızlı: LLaMA 3 8B</option>
+            <option value="deepseek-r1:7b">Daha hızlı: Deepseek-r1:7b</option>
+            <option value="qwen3:14b">Daha hızlı: qwen3:14b</option>
+            <option value="qwen3:8b">Daha hızlı: qwen3:8b</option>
           </select>
         </div>
         <div className="mb-3">
